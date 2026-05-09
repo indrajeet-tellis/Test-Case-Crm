@@ -1,0 +1,87 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  password      String
+  role          Role      @default(USER)
+  testCases     TestCase[]
+  comments      Comment[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+model Project {
+  id          String     @id @default(cuid())
+  name        String
+  description String?
+  testCases   TestCase[]
+  statuses    StatusConfig[]
+  categories  Category[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+  testCases TestCase[]
+  createdAt DateTime @default(now())
+
+  @@unique([name, projectId])
+}
+
+model TestCase {
+  id              String   @id @default(cuid())
+  projectId       String
+  project         Project  @relation(fields: [projectId], references: [id])
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  categoryId      String
+  category        Category @relation(fields: [categoryId], references: [id])
+  testCaseId      String   @unique
+  action          String
+  conditions      String
+  steps           String
+  expectedOutput  String
+  actualOutput    String?
+  status          String   @default("pending")
+  comments        Comment[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Comment {
+  id         String   @id @default(cuid())
+  testCaseId String
+  testCase   TestCase @relation(fields: [testCaseId], references: [id])
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  content    String
+  createdAt  DateTime @default(now())
+}
+
+model StatusConfig {
+  id        String   @id @default(cuid())
+  name      String
+  color     String?
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([name, projectId])
+}
