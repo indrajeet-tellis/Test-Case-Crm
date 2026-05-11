@@ -33,6 +33,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       url: "/dashboard/logs",
       icon: <HistoryIcon />,
     },
+    {
+      title: "Settings",
+      url: "/dashboard/settings/config",
+      icon: <Settings2Icon />,
+    },
   ]
 
   // Add admin-only items
@@ -42,11 +47,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         title: "Users",
         url: "/dashboard/settings/users",
         icon: <UsersIcon />,
-      },
-      {
-        title: "Settings",
-        url: "/dashboard/settings/config",
-        icon: <Settings2Icon />,
       }
     )
   }
