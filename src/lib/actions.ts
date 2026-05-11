@@ -75,9 +75,10 @@ export async function deleteCategory(id: string) {
 
 export async function createUser(data: any) {
   const { password, ...rest } = data;
-  // Note: in a real app, hash the password!
+  const bcrypt = await import("bcryptjs");
+  const hashedPassword = await bcrypt.hash(password, 10);
   return await prisma.user.create({
-    data: { ...rest, password },
+    data: { ...rest, password: hashedPassword },
   });
 }
 
