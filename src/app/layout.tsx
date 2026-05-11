@@ -14,8 +14,11 @@ const firaCode = Fira_Code({
 });
 
 export const metadata: Metadata = {
-  title: "Cyberpunk CRM",
+  title: "Salonnz Test CRM",
   description: "Test Case Management System",
+  icons: {
+    icon: "/logo.png",
+  },
 };
 
 import { Providers } from "@/components/providers";

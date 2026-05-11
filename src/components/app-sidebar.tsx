@@ -11,7 +11,7 @@ import {
   SidebarFooter,
   SidebarHeader,
 } from "@/components/ui/sidebar"
-import { LayoutDashboardIcon, FolderIcon, UsersIcon, Settings2Icon, ShieldCheckIcon } from "lucide-react"
+import { LayoutDashboardIcon, FolderIcon, UsersIcon, Settings2Icon, ShieldCheckIcon, HistoryIcon } from "lucide-react"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: session } = useSession()
@@ -27,6 +27,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: "Projects",
       url: "/dashboard/projects",
       icon: <FolderIcon />,
+    },
+    {
+      title: "Logs",
+      url: "/dashboard/logs",
+      icon: <HistoryIcon />,
     },
   ]
 

@@ -74,12 +74,23 @@ export async function deleteCategory(id: string) {
 }
 
 export async function createUser(data: any) {
+  const session = await auth();
   const { password, ...rest } = data;
   const bcrypt = await import("bcryptjs");
   const hashedPassword = await bcrypt.hash(password, 10);
-  return await prisma.user.create({
+  const user = await prisma.user.create({
     data: { ...rest, password: hashedPassword },
   });
+
+  if (session?.user?.id) {
+    await logActivity(
+      (session.user as any).id,
+      "CREATED_USER",
+      `Created user ${user.email}`
+    );
+  }
+
+  return user;
 }
 
 export async function updateUser(id: string, data: any) {
@@ -94,7 +105,19 @@ export async function updateUser(id: string, data: any) {
 }
 
 export async function deleteUser(id: string) {
-  return await prisma.user.delete({ where: { id } });
+  const session = await auth();
+  const user = await prisma.user.findUnique({ where: { id } });
+  const result = await prisma.user.delete({ where: { id } });
+
+  if (session?.user?.id && user) {
+    await logActivity(
+      (session.user as any).id,
+      "DELETED_USER",
+      `Deleted user ${user.email}`
+    );
+  }
+
+  return result;
 }
 
 export async function getTestCases(projectId?: string) {
@@ -166,16 +189,30 @@ export async function importTestCases(projectId: string, data: any[]) {
     };
   });
 
-  await prisma.testCase.createMany({
+  const result = await prisma.testCase.createMany({
     data: testCases,
     skipDuplicates: true,
   });
 
+  await logActivity(
+    (session.user as any).id,
+    "IMPORTED_TESTS",
+    `Imported ${testCases.length} test cases`,
+    projectId
+  );
+
   revalidatePath("/dashboard");
+  return result;
 }
+
 export async function addComment(testCaseId: string, content: string) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
+
+  const tc = await prisma.testCase.findUnique({
+    where: { id: testCaseId },
+    select: { testCaseId: true, projectId: true }
+  });
 
   await prisma.comment.create({
     data: {
@@ -185,6 +222,15 @@ export async function addComment(testCaseId: string, content: string) {
     },
   });
 
+  if (tc) {
+    await logActivity(
+      (session.user as any).id,
+      "ADDED_COMMENT",
+      `Added comment on ${tc.testCaseId}`,
+      tc.projectId
+    );
+  }
+
   revalidatePath("/dashboard");
 }
 
@@ -192,10 +238,24 @@ export async function updateTestCaseStatus(testCaseId: string, status: string) {
   const session = await auth();
   if (!session) throw new Error("Unauthorized");
 
+  const oldTc = await prisma.testCase.findUnique({
+    where: { id: testCaseId },
+    select: { status: true, testCaseId: true, projectId: true }
+  });
+
   await prisma.testCase.update({
     where: { id: testCaseId },
     data: { status },
   });
+
+  if (oldTc) {
+    await logActivity(
+      (session.user as any).id,
+      "UPDATED_STATUS",
+      `Changed status of ${oldTc.testCaseId} from ${oldTc.status} to ${status}`,
+      oldTc.projectId
+    );
+  }
 
   revalidatePath("/dashboard");
 }
@@ -211,6 +271,61 @@ export async function createProject(name: string, description?: string) {
     data: { name, description },
   });
 
+  await logActivity(
+    (session.user as any).id,
+    "CREATED_PROJECT",
+    `Created project '${name}'`,
+    project.id
+  );
+
   revalidatePath("/dashboard");
   return project;
 }
+
+export async function logActivity(
+  userId: string,
+  action: string,
+  description: string,
+  projectId?: string,
+  metadata?: any
+) {
+  try {
+    await prisma.activityLog.create({
+      data: {
+        userId,
+        projectId,
+        action,
+        description,
+        metadata: metadata || {},
+      },
+    });
+  } catch (err) {
+    console.error("Failed to log activity:", err);
+  }
+}
+
+export async function getActivityLogs(projectId?: string) {
+  const session = await auth();
+  if (!session) return [];
+
+  const user = session.user as any;
+  
+  const where: any = {};
+  if (projectId) where.projectId = projectId;
+  
+  // Regular users only see their own logs
+  if (user.role !== "ADMIN") {
+    where.userId = user.id;
+  }
+
+  return await prisma.activityLog.findMany({
+    where,
+    include: {
+      user: { select: { name: true, email: true } },
+      project: { select: { name: true } },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 100, // Limit to recent 100 logs
+  });
+}
+
