@@ -8,6 +8,7 @@ services:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-crm_db}?schema=public
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
       - NEXTAUTH_URL=https://tests.salonnz.com
+      - AUTH_TRUST_HOST=true
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.testcasecrm.rule=Host(`tests.salonnz.com`)"
