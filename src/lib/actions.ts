@@ -276,8 +276,18 @@ export async function updateTestCaseStatus(testCaseId: string, status: string) {
 
 export async function createProject(name: string, description?: string) {
   const session = await auth();
-  if (!session || (session.user as any).role !== "ADMIN") {
-    throw new Error("Only admins can create projects");
+  if (!session?.user?.id) {
+    return { error: "Unauthorized" };
+  }
+
+  let role = (session.user as any).role;
+  if (!role) {
+    const dbUser = await prisma.user.findUnique({ where: { id: (session.user as any).id } });
+    role = dbUser?.role;
+  }
+
+  if (role !== "ADMIN") {
+    return { error: "Only admins can create projects" };
   }
 
   const project = await prisma.project.create({

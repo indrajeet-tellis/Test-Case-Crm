@@ -25,14 +25,20 @@ export function CreateProjectButton() {
   const handleCreate = async () => {
     if (!name.trim()) return
     try {
-      const project = await createProject(name, description)
+      const result = await createProject(name, description)
+      
+      if (result && 'error' in result) {
+        toast.error(result.error)
+        return
+      }
+      
       toast.success("Project created successfully")
       setIsOpen(false)
       setName("")
       setDescription("")
-      router.push(`/dashboard?projectId=${project.id}`)
+      router.push(`/dashboard?projectId=${(result as any).id}`)
     } catch (error: any) {
-      toast.error(error.message)
+      toast.error(error.message || "Failed to create project")
     }
   }
 
