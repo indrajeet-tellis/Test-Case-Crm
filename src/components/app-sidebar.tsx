@@ -50,12 +50,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader className="border-b border-primary/20 bg-card/50 backdrop-blur-xl">
         <div className="flex items-center gap-2 px-4 py-6">
-          <div className="flex aspect-square size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-[0_0_20px_rgba(171,0,255,0.6)] ring-1 ring-white/20">
-            <ShieldCheckIcon className="size-6" />
+          <div className="flex aspect-square size-10 items-center justify-center rounded-xl bg-primary/20 p-1 shadow-[0_0_20px_rgba(255,0,255,0.4)] ring-1 ring-white/20">
+            <img src="/logo.png" alt="Salonnz Logo" className="size-full object-contain" />
           </div>
           <div className="flex flex-col">
-            <span className="text-xl font-black tracking-tighter uppercase leading-none text-primary">TC CRM</span>
-            <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold">Secure Archive</span>
+            <span className="text-xl font-black tracking-tighter uppercase leading-none text-primary">SALONNZ</span>
+            <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold">TEST CRM</span>
           </div>
         </div>
       </SidebarHeader>
