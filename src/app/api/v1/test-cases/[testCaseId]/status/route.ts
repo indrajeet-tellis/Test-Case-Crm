@@ -3,11 +3,14 @@ import { prisma } from "@/lib/prisma";
 import { validateAgentApiRequest } from "@/lib/api-auth";
 import { logActivity } from "@/lib/actions";
 
-export async function PATCH(request: Request, { params }: { params: { testCaseId: string } }) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ testCaseId: string }> }) {
   const auth = await validateAgentApiRequest(request);
   if (auth.error) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   try {
+    const resolvedParams = await params;
+    const testCaseId = resolvedParams.testCaseId;
+
     const body = await request.json();
     const { status } = body;
 
@@ -16,7 +19,7 @@ export async function PATCH(request: Request, { params }: { params: { testCaseId
     }
 
     const oldTc = await prisma.testCase.findUnique({
-      where: { id: params.testCaseId },
+      where: { id: testCaseId },
       select: { status: true, testCaseId: true, projectId: true }
     });
 
@@ -25,7 +28,7 @@ export async function PATCH(request: Request, { params }: { params: { testCaseId
     }
 
     const updated = await prisma.testCase.update({
-      where: { id: params.testCaseId },
+      where: { id: testCaseId },
       data: { status },
     });
 

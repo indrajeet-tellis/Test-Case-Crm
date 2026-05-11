@@ -3,11 +3,14 @@ import { prisma } from "@/lib/prisma";
 import { validateAgentApiRequest } from "@/lib/api-auth";
 import { logActivity } from "@/lib/actions";
 
-export async function POST(request: Request, { params }: { params: { projectId: string } }) {
+export async function POST(request: Request, { params }: { params: Promise<{ projectId: string }> }) {
   const auth = await validateAgentApiRequest(request);
   if (auth.error) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   try {
+    const resolvedParams = await params;
+    const projectId = resolvedParams.projectId;
+    
     const body = await request.json();
     const { name, color } = body;
 
@@ -16,11 +19,11 @@ export async function POST(request: Request, { params }: { params: { projectId: 
     }
 
     const status = await prisma.statusConfig.create({
-      data: { name, color, projectId: params.projectId },
+      data: { name, color, projectId },
     });
 
     if (auth.user) {
-      await logActivity(auth.user.id, "ADDED_STATUS", `Added status '${name}' via API`, params.projectId);
+      await logActivity(auth.user.id, "ADDED_STATUS", `Added status '${name}' via API`, projectId);
     }
 
     return NextResponse.json(status, { status: 201 });

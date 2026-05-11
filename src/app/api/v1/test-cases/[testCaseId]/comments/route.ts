@@ -3,11 +3,14 @@ import { prisma } from "@/lib/prisma";
 import { validateAgentApiRequest } from "@/lib/api-auth";
 import { logActivity } from "@/lib/actions";
 
-export async function POST(request: Request, { params }: { params: { testCaseId: string } }) {
+export async function POST(request: Request, { params }: { params: Promise<{ testCaseId: string }> }) {
   const auth = await validateAgentApiRequest(request);
   if (auth.error) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   try {
+    const resolvedParams = await params;
+    const testCaseId = resolvedParams.testCaseId;
+
     const body = await request.json();
     const { content } = body;
 
@@ -16,7 +19,7 @@ export async function POST(request: Request, { params }: { params: { testCaseId:
     }
 
     const tc = await prisma.testCase.findUnique({
-      where: { id: params.testCaseId },
+      where: { id: testCaseId },
       select: { testCaseId: true, projectId: true }
     });
 
@@ -26,7 +29,7 @@ export async function POST(request: Request, { params }: { params: { testCaseId:
 
     const comment = await prisma.comment.create({
       data: {
-        testCaseId: params.testCaseId,
+        testCaseId: testCaseId,
         content,
         userId: auth.user!.id,
       },
