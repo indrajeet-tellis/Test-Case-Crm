@@ -221,6 +221,16 @@ export function TestCasesTable({
   const columns: ColumnDef<TestCase>[] = React.useMemo(
     () => [
       {
+        id: "numbering",
+        header: "#",
+        size: 50,
+        cell: ({ row, table }) => {
+          const pageIndex = table.getState().pagination.pageIndex;
+          const pageSize = table.getState().pagination.pageSize;
+          return <span>{pageIndex * pageSize + row.index + 1}</span>;
+        },
+      },
+      {
         accessorKey: "user",
         header: "User",
         size: 120,
