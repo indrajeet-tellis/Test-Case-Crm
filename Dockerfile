@@ -44,17 +44,22 @@ RUN mkdir .next
 RUN chown nextjs:nodejs .next
 
 # Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy Prisma schema and start script
+# Copy Prisma schema, config, and start script
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.js ./prisma.config.js
 COPY --chown=nextjs:nodejs start.sh ./
 
-# Install prisma CLI and seeding dependencies for production use
-RUN npm install -g prisma tsx @prisma/client @prisma/adapter-pg pg
+# Install global CLIs
+RUN npm install -g prisma tsx
+
+# Install seed dependencies LOCALLY in /app so tsx can resolve them
+RUN npm install --save @prisma/client @prisma/adapter-pg pg bcryptjs
+
+# Fix ownership
+RUN chown -R nextjs:nodejs /app/node_modules /app/package.json
 
 USER nextjs
 
