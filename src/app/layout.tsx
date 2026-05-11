@@ -18,6 +18,7 @@ export const metadata: Metadata = {
   description: "Test Case Management System",
 };
 
+import { Providers } from "@/components/providers";
 import { Toaster } from "@/components/ui/sonner";
 
 export default function RootLayout({
@@ -31,7 +32,7 @@ export default function RootLayout({
       className={`${outfit.variable} ${firaCode.variable} h-full antialiased dark`}
     >
       <body className="min-h-full flex flex-col font-sans">
-        <TooltipProvider>{children}</TooltipProvider>
+        <Providers>{children}</Providers>
         <Toaster />
       </body>
     </html>

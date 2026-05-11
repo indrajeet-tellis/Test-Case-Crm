@@ -4,25 +4,20 @@ import * as React from "react"
 
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
+import { useSession } from "next-auth/react"
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { LayoutDashboardIcon, ListIcon, ChartBarIcon, FolderIcon, UsersIcon, FileTextIcon, Settings2Icon, DatabaseIcon, FileChartColumnIcon, HistoryIcon, ShieldCheckIcon, PlusIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { LayoutDashboardIcon, FolderIcon, UsersIcon, Settings2Icon, ShieldCheckIcon } from "lucide-react"
 
-const data = {
-  user: {
-    name: "Admin User",
-    email: "admin@testcasecrm.com",
-    avatar: "/avatars/admin.jpg",
-  },
-  navMain: [
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { data: session } = useSession()
+  const user = session?.user as any
+
+  const navMain = [
     {
       title: "Dashboard",
       url: "/dashboard",
@@ -33,20 +28,24 @@ const data = {
       url: "/dashboard/projects",
       icon: <FolderIcon />,
     },
-    {
-      title: "Users",
-      url: "/dashboard/settings/users",
-      icon: <UsersIcon />,
-    },
-    {
-      title: "Settings",
-      url: "/dashboard/settings/config",
-      icon: <Settings2Icon />,
-    },
-  ],
-}
+  ]
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  // Add admin-only items
+  if (user?.role === "ADMIN") {
+    navMain.push(
+      {
+        title: "Users",
+        url: "/dashboard/settings/users",
+        icon: <UsersIcon />,
+      },
+      {
+        title: "Settings",
+        url: "/dashboard/settings/config",
+        icon: <Settings2Icon />,
+      }
+    )
+  }
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader className="border-b border-primary/20 bg-card/50 backdrop-blur-xl">
@@ -61,10 +60,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </div>
       </SidebarHeader>
       <SidebarContent className="bg-card/30 backdrop-blur-md">
-        <NavMain items={data.navMain} />
+        <NavMain items={navMain} />
       </SidebarContent>
       <SidebarFooter className="border-t border-primary/20 bg-card/50 backdrop-blur-xl">
-        <NavUser user={data.user} />
+        <NavUser 
+          user={{
+            name: user?.name || "User",
+            email: user?.email || "",
+            avatar: "",
+          }} 
+        />
       </SidebarFooter>
     </Sidebar>
   )
