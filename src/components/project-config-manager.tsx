@@ -6,6 +6,17 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { PlusIcon, Trash2Icon, CheckCircle2Icon, TagIcon } from "lucide-react"
 import { toast } from "sonner"
 import { addCategory, addStatus, deleteCategory, deleteStatus, getProjectConfigs } from "@/lib/actions"
@@ -146,9 +157,27 @@ export function ProjectConfigManager({ projects }: { projects: any[] }) {
                     <div className="h-3 w-3 rounded-full shadow-[0_0_8px_currentColor]" style={{ backgroundColor: s.color || "#ccc", color: s.color || "#ccc" }} />
                     <span className="text-sm font-medium">{s.name}</span>
                   </div>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => handleDeleteStatus(s.id)}>
-                    <Trash2Icon className="h-4 w-4" />
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10">
+                        <Trash2Icon className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="border-primary/20 bg-card/90 backdrop-blur-xl">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Status</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete the status "{s.name}"? This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel className="border-primary/20">Cancel</AlertDialogCancel>
+                        <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => handleDeleteStatus(s.id)}>
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               ))}
               {configs.statuses.length === 0 && (
@@ -187,9 +216,27 @@ export function ProjectConfigManager({ projects }: { projects: any[] }) {
               {configs.categories.map((c) => (
                 <div key={c.id} className="flex items-center justify-between rounded-md border border-primary/10 bg-card/30 p-2 transition-all hover:border-primary/30">
                   <span className="text-sm font-medium">{c.name}</span>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => handleDeleteCategory(c.id)}>
-                    <Trash2Icon className="h-4 w-4" />
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10">
+                        <Trash2Icon className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="border-primary/20 bg-card/90 backdrop-blur-xl">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Category</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete the category "{c.name}"? This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel className="border-primary/20">Cancel</AlertDialogCancel>
+                        <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => handleDeleteCategory(c.id)}>
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               ))}
               {configs.categories.length === 0 && (
