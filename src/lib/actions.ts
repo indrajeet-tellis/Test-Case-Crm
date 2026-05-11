@@ -308,16 +308,24 @@ export async function getActivityLogs(projectId?: string) {
   const session = await auth();
   if (!session) return [];
 
-  const user = session.user as any;
+  // Cleanup old logs (older than 90 days)
+  const ninetyDaysAgo = new Date();
+  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
   
+  try {
+    await prisma.activityLog.deleteMany({
+      where: {
+        createdAt: { lt: ninetyDaysAgo }
+      }
+    });
+  } catch (err) {
+    console.error("Failed to cleanup old logs:", err);
+  }
+
   const where: any = {};
   if (projectId) where.projectId = projectId;
   
-  // Regular users only see their own logs
-  if (user.role !== "ADMIN") {
-    where.userId = user.id;
-  }
-
+  // Everyone sees all logs as requested
   return await prisma.activityLog.findMany({
     where,
     include: {
@@ -328,4 +336,5 @@ export async function getActivityLogs(projectId?: string) {
     take: 100, // Limit to recent 100 logs
   });
 }
+
 
