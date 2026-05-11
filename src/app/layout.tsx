@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   title: "Salonnz Test CRM",
   description: "Test Case Management System",
   icons: {
-    icon: "/logo.png",
+    icon: "/favicon.png",
   },
 };
 
