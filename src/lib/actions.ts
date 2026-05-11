@@ -171,6 +171,19 @@ export async function importTestCases(projectId: string, data: any[]) {
     })
   );
 
+  // Get or create statuses
+  const statusNames = [...new Set(data.map(item => item.Status?.toLowerCase() || "pending"))] as string[];
+  await Promise.all(
+    statusNames.map(async (name) => {
+      if (!name) return;
+      return await prisma.statusConfig.upsert({
+        where: { name_projectId: { name, projectId } },
+        update: {},
+        create: { name, projectId, color: "#6b7280" }, // Default gray color
+      });
+    })
+  );
+
   const categoryMap = new Map(categories.map(c => [c.name, c.id]));
 
   const testCases = data.map((item) => {
