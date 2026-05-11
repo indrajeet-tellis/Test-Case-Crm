@@ -38,22 +38,41 @@ async function main() {
       ["indrajeet@tellistechnologies.com"]
     );
 
-    if (check.rows.length > 0) {
+    // Create admin user if not exists
+    if (check.rows.length === 0) {
+      const hashedPassword = await bcrypt.hash("Tellis@$#2026", 10);
+      const id = require("crypto").randomBytes(12).toString("hex");
+
+      await pool.query(
+        `INSERT INTO "User" (id, name, email, password, role, "createdAt", "updatedAt")
+         VALUES ($1, $2, $3, $4, $5, NOW(), NOW())`,
+        [id, "Indrajeet Admin", "indrajeet@tellistechnologies.com", hashedPassword, "ADMIN"]
+      );
+      console.log("Admin user created successfully!");
+    } else {
       console.log("Admin user already exists, skipping seed.");
-      return;
     }
 
-    // Create admin user
-    const hashedPassword = await bcrypt.hash("Tellis@$#2026", 10);
-    const id = require("crypto").randomBytes(12).toString("hex");
-
-    await pool.query(
-      `INSERT INTO "User" (id, name, email, password, role, "createdAt", "updatedAt")
-       VALUES ($1, $2, $3, $4, $5, NOW(), NOW())`,
-      [id, "Indrajeet Admin", "indrajeet@tellistechnologies.com", hashedPassword, "ADMIN"]
+    // Check if AI Agent user already exists
+    const agentCheck = await pool.query(
+      "SELECT id FROM \"User\" WHERE email = $1",
+      ["ai-agent@salonnz.com"]
     );
 
-    console.log("Admin user created successfully!");
+    if (agentCheck.rows.length === 0) {
+      const hashedPassword = await bcrypt.hash(require("crypto").randomBytes(32).toString("hex"), 10);
+      const id = require("crypto").randomBytes(12).toString("hex");
+
+      await pool.query(
+        `INSERT INTO "User" (id, name, email, password, role, "createdAt", "updatedAt")
+         VALUES ($1, $2, $3, $4, $5, NOW(), NOW())`,
+        [id, "Salonnz AI Agent", "ai-agent@salonnz.com", hashedPassword, "ADMIN"]
+      );
+      console.log("AI Agent user created successfully!");
+    } else {
+      console.log("AI Agent user already exists, skipping seed.");
+    }
+
   } catch (err) {
     console.error("Seed error:", err.message);
   } finally {
