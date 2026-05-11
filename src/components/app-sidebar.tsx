@@ -34,19 +34,14 @@ const data = {
       icon: <FolderIcon />,
     },
     {
+      title: "Users",
+      url: "/dashboard/settings/users",
+      icon: <UsersIcon />,
+    },
+    {
       title: "Settings",
-      url: "#",
+      url: "/dashboard/settings/config",
       icon: <Settings2Icon />,
-      items: [
-        {
-          title: "Status & Categories",
-          url: "/dashboard/settings/config",
-        },
-        {
-          title: "User Management",
-          url: "/dashboard/settings/users",
-        },
-      ],
     },
   ],
 }
