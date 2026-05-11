@@ -47,19 +47,17 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy Prisma schema, config, and start script
+# Copy Prisma schema, config, and startup files
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.js ./prisma.config.js
+COPY --from=builder --chown=nextjs:nodejs /app/seed-prod.js ./seed-prod.js
 COPY --chown=nextjs:nodejs start.sh ./
 
-# Install global CLIs
-RUN npm install -g prisma tsx
+# Install prisma CLI globally for db push
+RUN npm install -g prisma
 
-# Install seed dependencies LOCALLY in /app so tsx can resolve them
-RUN npm install --save @prisma/client @prisma/adapter-pg pg bcryptjs
-
-# Fix ownership
-RUN chown -R nextjs:nodejs /app/node_modules /app/package.json
+# Install seed dependencies in an isolated directory to avoid conflicts
+RUN mkdir -p /seed && cd /seed && npm init -y && npm install pg bcryptjs
 
 USER nextjs
 
