@@ -52,8 +52,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --chown=nextjs:nodejs start.sh ./
 
-# Install prisma CLI for db push at runtime
-RUN npm install -g prisma
+# Install prisma CLI and seeding dependencies for production use
+RUN npm install -g prisma tsx @prisma/client @prisma/adapter-pg pg
 
 USER nextjs
 
