@@ -6,6 +6,13 @@ async function main() {
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
   try {
+    // Ensure module column exists on TestCase table
+    await pool.query(`
+      ALTER TABLE "TestCase" ADD COLUMN IF NOT EXISTS "module" TEXT;
+    `).catch(() => {
+      console.log("Module column already exists or table not ready yet.");
+    });
+
     // Check if admin already exists
     const check = await pool.query(
       "SELECT id FROM \"User\" WHERE email = $1",

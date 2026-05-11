@@ -46,6 +46,7 @@ export function ProjectHeader({
   const handleDownloadSample = () => {
     const headers = [
       "Category",
+      "Module",
       "Test Case Id",
       "Action",
       "Cases/Conditions",
@@ -57,6 +58,7 @@ export function ProjectHeader({
     const sampleData = [
       {
         Category: "Login",
+        Module: "Authentication",
         "Test Case Id": "TC-001",
         Action: "Login with valid credentials",
         "Cases/Conditions": "Internet available",
@@ -109,6 +111,7 @@ export function ProjectHeader({
   const [isCreatingTestCase, setIsCreatingTestCase] = React.useState(false);
   const [newTestCase, setNewTestCase] = React.useState({
     category: "",
+    module: "",
     testCaseId: "",
     action: "",
     conditions: "",
@@ -122,6 +125,7 @@ export function ProjectHeader({
     try {
       await importTestCases(selectedProjectId, [{
         Category: newTestCase.category,
+        Module: newTestCase.module,
         "Test Case Id": newTestCase.testCaseId,
         Action: newTestCase.action,
         "Cases/Conditions": newTestCase.conditions,
@@ -131,6 +135,7 @@ export function ProjectHeader({
       }]);
       setNewTestCase({
         category: "",
+        module: "",
         testCaseId: "",
         action: "",
         conditions: "",
@@ -235,6 +240,14 @@ export function ProjectHeader({
                   placeholder="TC-001"
                   value={newTestCase.testCaseId}
                   onChange={(e) => setNewTestCase({ ...newTestCase, testCaseId: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Module</Label>
+                <Input
+                  placeholder="e.g. Authentication"
+                  value={newTestCase.module}
+                  onChange={(e) => setNewTestCase({ ...newTestCase, module: e.target.value })}
                 />
               </div>
               <div className="col-span-2 space-y-2">

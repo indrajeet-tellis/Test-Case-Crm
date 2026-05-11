@@ -155,6 +155,7 @@ export async function importTestCases(projectId: string, data: any[]) {
       userId: (session.user as any).id,
       categoryId: categoryMap.get(item.Category || "General")!,
       testCaseId: item["Test Case Id"] || `TC-${Math.random().toString(36).substr(2, 9)}`,
+      module: item.Module || null,
       action: item.Action || "",
       conditions: item["Cases/Conditions"] || "",
       steps: item["Steps/Description"] || "",

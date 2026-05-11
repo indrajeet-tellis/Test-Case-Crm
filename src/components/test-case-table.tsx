@@ -55,6 +55,7 @@ interface TestCase {
   user: { name: string | null; email: string };
   category: { name: string };
   testCaseId: string;
+  module: string | null;
   action: string;
   conditions: string;
   steps: string;
@@ -224,6 +225,12 @@ export function TestCasesTable({
         header: "User",
         size: 120,
         cell: ({ row }) => <span className="font-medium">{row.original.user.name || row.original.user.email}</span>
+      },
+      {
+        accessorKey: "module",
+        header: "Module",
+        size: 120,
+        cell: ({ row }) => row.original.module ?? "—",
       },
       {
         id: "category",
