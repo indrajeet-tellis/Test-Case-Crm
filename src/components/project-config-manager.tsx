@@ -20,9 +20,18 @@ export function ProjectConfigManager({ projects }: { projects: any[] }) {
   const loadConfigs = React.useCallback(async () => {
     if (!selectedProjectId) return
     setLoading(true)
-    const data = await getProjectConfigs(selectedProjectId)
-    setConfigs(data)
-    setLoading(false)
+    try {
+      const data = await getProjectConfigs(selectedProjectId)
+      setConfigs({
+        statuses: data?.statuses || [],
+        categories: data?.categories || []
+      })
+    } catch (e) {
+      console.error("Failed to load configs:", e)
+      toast.error("Failed to load configuration")
+    } finally {
+      setLoading(false)
+    }
   }, [selectedProjectId])
 
   React.useEffect(() => {
@@ -75,17 +84,17 @@ export function ProjectConfigManager({ projects }: { projects: any[] }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <Card>
+      <Card className="border-primary/20 bg-card/50 backdrop-blur-xl">
         <CardHeader>
-          <CardTitle>Select Project</CardTitle>
+          <CardTitle className="text-primary tracking-wider uppercase text-sm font-black">Select Project</CardTitle>
           <CardDescription>Select a project to manage its status and categories.</CardDescription>
         </CardHeader>
         <CardContent>
           <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
-            <SelectTrigger className="w-[300px]">
+            <SelectTrigger className="w-[300px] border-primary/20 bg-card/30">
               <SelectValue placeholder="Select a project" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-card/90 backdrop-blur-xl border-primary/20">
               {projects.map((p) => (
                 <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
               ))}
@@ -95,9 +104,9 @@ export function ProjectConfigManager({ projects }: { projects: any[] }) {
       </Card>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+        <Card className="border-primary/20 bg-card/50 backdrop-blur-xl">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-primary tracking-wider uppercase text-sm font-black">
               <CheckCircle2Icon className="h-5 w-5" />
               Statuses
             </CardTitle>
@@ -106,51 +115,52 @@ export function ProjectConfigManager({ projects }: { projects: any[] }) {
           <CardContent className="flex flex-col gap-4">
             <div className="flex items-end gap-2">
               <div className="grid flex-1 gap-2">
-                <Label htmlFor="status-name">Status Name</Label>
+                <Label htmlFor="status-name" className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Status Name</Label>
                 <Input 
                   id="status-name" 
                   placeholder="e.g. In Progress" 
                   value={newStatus.name}
                   onChange={(e) => setNewStatus({ ...newStatus, name: e.target.value })}
+                  className="border-primary/20 bg-card/30"
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="status-color">Color</Label>
+                <Label htmlFor="status-color" className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Color</Label>
                 <Input 
                   id="status-color" 
                   type="color" 
-                  className="w-16 h-10 p-1"
+                  className="w-16 h-10 p-1 border-primary/20 bg-card/30"
                   value={newStatus.color}
                   onChange={(e) => setNewStatus({ ...newStatus, color: e.target.value })}
                 />
               </div>
-              <Button size="icon" onClick={handleAddStatus}>
+              <Button size="icon" onClick={handleAddStatus} className="bg-primary hover:bg-primary/90 shadow-[0_0_15px_rgba(171,0,255,0.4)]">
                 <PlusIcon className="h-4 w-4" />
               </Button>
             </div>
 
             <div className="mt-4 space-y-2">
               {configs.statuses.map((s) => (
-                <div key={s.id} className="flex items-center justify-between rounded-md border p-2">
+                <div key={s.id} className="flex items-center justify-between rounded-md border border-primary/10 bg-card/30 p-2 transition-all hover:border-primary/30">
                   <div className="flex items-center gap-2">
-                    <div className="h-3 w-3 rounded-full" style={{ backgroundColor: s.color || "#ccc" }} />
+                    <div className="h-3 w-3 rounded-full shadow-[0_0_8px_currentColor]" style={{ backgroundColor: s.color || "#ccc", color: s.color || "#ccc" }} />
                     <span className="text-sm font-medium">{s.name}</span>
                   </div>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDeleteStatus(s.id)}>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => handleDeleteStatus(s.id)}>
                     <Trash2Icon className="h-4 w-4" />
                   </Button>
                 </div>
               ))}
               {configs.statuses.length === 0 && (
-                <p className="text-center text-sm text-muted-foreground py-4">No statuses defined.</p>
+                <p className="text-center text-sm text-muted-foreground py-4 italic">No statuses defined.</p>
               )}
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-primary/20 bg-card/50 backdrop-blur-xl">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-primary tracking-wider uppercase text-sm font-black">
               <TagIcon className="h-5 w-5" />
               Categories
             </CardTitle>
@@ -159,30 +169,31 @@ export function ProjectConfigManager({ projects }: { projects: any[] }) {
           <CardContent className="flex flex-col gap-4">
             <div className="flex items-end gap-2">
               <div className="grid flex-1 gap-2">
-                <Label htmlFor="category-name">Category Name</Label>
+                <Label htmlFor="category-name" className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Category Name</Label>
                 <Input 
                   id="category-name" 
                   placeholder="e.g. UI/UX" 
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value)}
+                  className="border-primary/20 bg-card/30"
                 />
               </div>
-              <Button size="icon" onClick={handleAddCategory}>
+              <Button size="icon" onClick={handleAddCategory} className="bg-primary hover:bg-primary/90 shadow-[0_0_15px_rgba(171,0,255,0.4)]">
                 <PlusIcon className="h-4 w-4" />
               </Button>
             </div>
 
             <div className="mt-4 space-y-2">
               {configs.categories.map((c) => (
-                <div key={c.id} className="flex items-center justify-between rounded-md border p-2">
+                <div key={c.id} className="flex items-center justify-between rounded-md border border-primary/10 bg-card/30 p-2 transition-all hover:border-primary/30">
                   <span className="text-sm font-medium">{c.name}</span>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDeleteCategory(c.id)}>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => handleDeleteCategory(c.id)}>
                     <Trash2Icon className="h-4 w-4" />
                   </Button>
                 </div>
               ))}
               {configs.categories.length === 0 && (
-                <p className="text-center text-sm text-muted-foreground py-4">No categories defined.</p>
+                <p className="text-center text-sm text-muted-foreground py-4 italic">No categories defined.</p>
               )}
             </div>
           </CardContent>

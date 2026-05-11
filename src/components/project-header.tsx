@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Plus, Upload, Download, FolderPlus } from "lucide-react";
+import { Plus, Upload, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -39,22 +39,9 @@ export function ProjectHeader({
   categories?: any[];
   statuses?: any[];
 }) {
-  const [newProjectName, setNewProjectName] = React.useState("");
-  const [isCreatingProject, setIsCreatingProject] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const router = useRouter();
 
-  const handleCreateProject = async () => {
-    if (!newProjectName.trim()) return;
-    try {
-      await createProject(newProjectName);
-      setNewProjectName("");
-      setIsCreatingProject(false);
-      toast.success("Project created successfully");
-    } catch (error: any) {
-      toast.error(error.message);
-    }
-  };
 
   const handleDownloadSample = () => {
     const headers = [
@@ -182,31 +169,6 @@ export function ProjectHeader({
           </Select>
         </div>
 
-        <Dialog open={isCreatingProject} onOpenChange={setIsCreatingProject}>
-          <DialogTrigger asChild>
-            <Button variant="outline" size="icon" className="mt-5 border-primary/20 hover:bg-primary/10">
-              <FolderPlus className="size-4" />
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="border-primary/20 bg-card/90 backdrop-blur-xl">
-            <DialogHeader>
-              <DialogTitle>Create New Project</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>Project Name</Label>
-                <Input
-                  placeholder="e.g. Mobile App Redesign"
-                  value={newProjectName}
-                  onChange={(e) => setNewProjectName(e.target.value)}
-                />
-              </div>
-              <Button onClick={handleCreateProject} className="w-full">
-                Initialize Project
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
 
       <div className="flex items-center gap-2 lg:mt-5">

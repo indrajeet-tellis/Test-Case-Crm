@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { toast } from "sonner";
 import { ProjectHeader } from "@/components/project-header";
 import { TestCasesTable } from "@/components/test-case-table";
 import { getTestCases, getProjectConfigs } from "@/lib/actions";
@@ -22,14 +23,20 @@ export function DashboardView({
     async function loadData() {
       if (!selectedProjectId) return;
       setLoading(true);
-      const [data, configs] = await Promise.all([
-        getTestCases(selectedProjectId),
-        getProjectConfigs(selectedProjectId)
-      ]);
-      setTestCases(data);
-      setStatusConfigs(configs.statuses);
-      setCategories(configs.categories);
-      setLoading(false);
+      try {
+        const [data, configs] = await Promise.all([
+          getTestCases(selectedProjectId),
+          getProjectConfigs(selectedProjectId)
+        ]);
+        setTestCases(data || []);
+        setStatusConfigs(configs?.statuses || []);
+        setCategories(configs?.categories || []);
+      } catch (error) {
+        console.error("Failed to load dashboard data:", error);
+        toast.error("Failed to load data. Please refresh.");
+      } finally {
+        setLoading(false);
+      }
     }
     loadData();
   }, [selectedProjectId]);
@@ -50,7 +57,12 @@ export function DashboardView({
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           </div>
         ) : (
-          <TestCasesTable data={testCases} statusConfigs={statusConfigs} categories={categories} />
+          <TestCasesTable 
+            data={testCases} 
+            statusConfigs={statusConfigs} 
+            categories={categories} 
+            projectId={selectedProjectId!}
+          />
         )}
       </div>
     </div>

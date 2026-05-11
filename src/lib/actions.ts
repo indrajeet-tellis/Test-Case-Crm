@@ -49,6 +49,7 @@ export async function getProjectConfigs(projectId: string) {
     where: { projectId },
     orderBy: { name: "asc" },
   });
+  
   return { statuses, categories };
 }
 
@@ -101,20 +102,26 @@ export async function getTestCases(projectId?: string) {
 
   const where = projectId ? { projectId } : {};
 
-  return await prisma.testCase.findMany({
-    where,
-    include: {
-      user: { select: { name: true, email: true } },
-      project: { select: { name: true } },
-      category: { select: { name: true } },
-      comments: {
-        include: { user: { select: { name: true } } },
-        orderBy: { createdAt: "asc" },
+  try {
+    return await prisma.testCase.findMany({
+      where,
+      include: {
+        user: { select: { name: true, email: true } },
+        project: { select: { name: true } },
+        category: { select: { name: true } },
+        comments: {
+          include: { user: { select: { name: true } } },
+          orderBy: { createdAt: "asc" },
+        },
       },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+      orderBy: { createdAt: "desc" },
+    });
+  } catch (e) {
+    console.error("Error fetching test cases:", e);
+    return [];
+  }
 }
+
 
 export async function getStatusConfigs(projectId?: string) {
   if (!projectId) return [];
@@ -142,18 +149,20 @@ export async function importTestCases(projectId: string, data: any[]) {
 
   const categoryMap = new Map(categories.map(c => [c.name, c.id]));
 
-  const testCases = data.map((item) => ({
-    projectId,
-    userId: (session.user as any).id,
-    categoryId: categoryMap.get(item.Category || "General")!,
-    testCaseId: item["Test Case Id"] || `TC-${Math.random().toString(36).substr(2, 9)}`,
-    action: item.Action || "",
-    conditions: item["Cases/Conditions"] || "",
-    steps: item["Steps/Description"] || "",
-    expectedOutput: item["Expected Output"] || "",
-    actualOutput: item["Actual Output"] || "",
-    status: item.Status?.toLowerCase() || "pending",
-  }));
+  const testCases = data.map((item) => {
+    return {
+      projectId,
+      userId: (session.user as any).id,
+      categoryId: categoryMap.get(item.Category || "General")!,
+      testCaseId: item["Test Case Id"] || `TC-${Math.random().toString(36).substr(2, 9)}`,
+      action: item.Action || "",
+      conditions: item["Cases/Conditions"] || "",
+      steps: item["Steps/Description"] || "",
+      expectedOutput: item["Expected Output"] || "",
+      actualOutput: item["Actual Output"] || "",
+      status: item.Status?.toLowerCase() || "pending",
+    };
+  });
 
   await prisma.testCase.createMany({
     data: testCases,

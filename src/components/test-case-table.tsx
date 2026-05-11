@@ -45,6 +45,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { MessageSquare, History, Plus, SlidersHorizontal } from "lucide-react";
 import { addComment, updateTestCaseStatus } from "@/lib/actions";
 import { toast } from "sonner";
@@ -145,7 +146,6 @@ function CommentDialog({
                 const text = commentText;
                 setIsSubmitting(true);
                 try {
-                  // Optimistic: immediately show the comment locally
                   const optimisticComment = {
                     id: `temp-${Date.now()}`,
                     content: text,
@@ -156,8 +156,6 @@ function CommentDialog({
                   setCommentText("");
                   setOpen(false);
                   toast.success("Comment added");
-
-                  // Persist to server
                   await addComment(testCase.id, text);
                 } catch {
                   toast.error("Failed to add comment");
@@ -180,15 +178,15 @@ export function TestCasesTable({
   data,
   statusConfigs,
   categories,
+  projectId,
 }: {
   data: TestCase[];
   statusConfigs: any[];
   categories?: any[];
+  projectId: string;
 }) {
-  // Local copy of data for optimistic updates
   const [tableData, setTableData] = React.useState<TestCase[]>(data);
 
-  // Sync when parent re-fetches data (e.g. project switch)
   React.useEffect(() => {
     setTableData(data);
   }, [data]);
@@ -197,12 +195,10 @@ export function TestCasesTable({
   const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>(loadColumnSizing);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
-  // Persist column sizing to localStorage whenever it changes
   React.useEffect(() => {
     saveColumnSizing(columnSizing);
   }, [columnSizing]);
 
-  // Optimistic handlers
   const handleStatusChange = React.useCallback((testCaseId: string, newStatus: string) => {
     setTableData((prev) =>
       prev.map((tc) => (tc.id === testCaseId ? { ...tc, status: newStatus } : tc))
@@ -221,102 +217,92 @@ export function TestCasesTable({
     );
   }, []);
 
-  const columns: ColumnDef<TestCase>[] = React.useMemo(() => [
-    {
-      accessorKey: "user",
-      header: "User",
-      size: 120,
-      minSize: 80,
-      cell: ({ row }) => (
-        <span className="font-medium">{row.original.user.name || row.original.user.email}</span>
-      ),
-    },
-    { 
-      id: "category",
-      accessorFn: (row) => row.category?.name,
-      header: "Category",
-      size: 120,
-      minSize: 80,
-    },
-    {
-      accessorKey: "testCaseId",
-      header: "ID",
-      size: 90,
-      minSize: 60,
-    },
-    {
-      accessorKey: "action",
-      header: "Action",
-      size: 200,
-      minSize: 120,
-    },
-    {
-      accessorKey: "conditions",
-      header: "Conditions",
-      size: 180,
-      minSize: 100,
-    },
-    {
-      accessorKey: "steps",
-      header: "Steps/Description",
-      size: 240,
-      minSize: 140,
-    },
-    {
-      accessorKey: "expectedOutput",
-      header: "Expected",
-      size: 180,
-      minSize: 100,
-    },
-    {
-      accessorKey: "actualOutput",
-      header: "Actual",
-      size: 150,
-      minSize: 80,
-      cell: ({ row }) => row.original.actualOutput ?? "—",
-    },
-    {
-      accessorKey: "status",
-      header: "Status",
-      size: 130,
-      minSize: 110,
-      cell: ({ row }) => (
-        <Select
-          value={row.original.status}
-          onValueChange={(val) => handleStatusChange(row.original.id, val)}
-        >
-          <SelectTrigger className="h-8 w-full border-primary/20 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {statusConfigs.map((s) => (
-              <SelectItem key={s.id} value={s.name}>
-                <span className="capitalize">{s.name}</span>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      ),
-    },
-    {
-      id: "comments",
-      header: "Latest Comment",
-      size: 250,
-      minSize: 150,
-      enableResizing: true,
-      cell: ({ row }) => {
-        const latestComment = row.original.comments[row.original.comments.length - 1];
-        return (
-          <div className="flex items-start justify-between gap-2">
-            <span className="text-xs text-muted-foreground flex-1 break-words">
-              {latestComment ? latestComment.content : "No comments"}
-            </span>
-            <CommentDialog testCase={row.original} onCommentAdded={handleCommentAdded} />
-          </div>
-        );
+  const columns: ColumnDef<TestCase>[] = React.useMemo(
+    () => [
+      {
+        accessorKey: "user",
+        header: "User",
+        size: 120,
+        cell: ({ row }) => <span className="font-medium">{row.original.user.name || row.original.user.email}</span>
       },
-    },
-  ], [statusConfigs, handleStatusChange, handleCommentAdded]);
+      {
+        id: "category",
+        accessorFn: (row) => row.category?.name,
+        header: "Category",
+        size: 120,
+      },
+      {
+        accessorKey: "testCaseId",
+        header: "ID",
+        size: 90,
+      },
+      {
+        accessorKey: "action",
+        header: "Action",
+        size: 200,
+      },
+      {
+        accessorKey: "conditions",
+        header: "Conditions",
+        size: 180,
+      },
+      {
+        accessorKey: "steps",
+        header: "Steps/Description",
+        size: 240,
+      },
+      {
+        accessorKey: "expectedOutput",
+        header: "Expected",
+        size: 180,
+      },
+      {
+        accessorKey: "actualOutput",
+        header: "Actual",
+        size: 150,
+        cell: ({ row }) => row.original.actualOutput ?? "—",
+      },
+      {
+        accessorKey: "status",
+        header: "Status",
+        size: 130,
+        cell: ({ row }) => (
+          <Select
+            value={row.original.status}
+            onValueChange={(val) => handleStatusChange(row.original.id, val)}
+          >
+            <SelectTrigger className="h-8 w-full border-primary/20 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {statusConfigs.map((s) => (
+                <SelectItem key={s.id} value={s.name}>
+                  <span className="capitalize">{s.name}</span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ),
+      },
+      {
+        id: "comments",
+        header: "Latest Comment",
+        size: 250,
+        cell: ({ row }) => {
+          const latestComment = row.original.comments[row.original.comments.length - 1];
+          return (
+            <div className="flex items-start justify-between gap-2">
+              <span className="text-xs text-muted-foreground flex-1 break-words">
+                {latestComment ? latestComment.content : "No comments"}
+              </span>
+              <CommentDialog testCase={row.original} onCommentAdded={handleCommentAdded} />
+            </div>
+          );
+        },
+      },
+    ],
+    [statusConfigs, handleStatusChange, handleCommentAdded]
+  );
 
   const table = useReactTable({
     data: tableData,
@@ -337,10 +323,8 @@ export function TestCasesTable({
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Toolbar */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          {/* Category Filter */}
           <Select
             value={(table.getColumn("category")?.getFilterValue() as string) ?? "all"}
             onValueChange={(val) => table.getColumn("category")?.setFilterValue(val === "all" ? undefined : val)}
@@ -356,7 +340,6 @@ export function TestCasesTable({
             </SelectContent>
           </Select>
 
-          {/* Status Filter */}
           <Select
             value={(table.getColumn("status")?.getFilterValue() as string) ?? "all"}
             onValueChange={(val) => table.getColumn("status")?.setFilterValue(val === "all" ? undefined : val)}
@@ -399,7 +382,6 @@ export function TestCasesTable({
         </DropdownMenu>
       </div>
 
-      {/* Table with single horizontal scroll */}
       <div className="overflow-x-auto rounded-md border border-primary/20 bg-card/50">
         <Table className="w-full" style={{ tableLayout: "fixed", minWidth: table.getTotalSize() }}>
           <colgroup>
@@ -419,8 +401,8 @@ export function TestCasesTable({
                     className="text-primary font-bold text-xs uppercase tracking-wider relative select-none group"
                   >
                     {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
+                       ? null
+                       : flexRender(header.column.columnDef.header, header.getContext())}
                     {header.column.getCanResize() && (
                       <div
                         onMouseDown={header.getResizeHandler()}
@@ -463,7 +445,6 @@ export function TestCasesTable({
         </Table>
       </div>
 
-      {/* Pagination */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
           {tableData.length} test case{tableData.length !== 1 ? "s" : ""}
