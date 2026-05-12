@@ -338,10 +338,30 @@ export function TestCasesTable({
     getFilteredRowModel: getFilteredRowModel(),
   });
 
+  const modules = React.useMemo(() => {
+    const uniqueModules = new Set(data.map((tc) => tc.module).filter(Boolean));
+    return Array.from(uniqueModules).sort() as string[];
+  }, [data]);
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
+          <Select
+            value={(table.getColumn("module")?.getFilterValue() as string) ?? "all"}
+            onValueChange={(val) => table.getColumn("module")?.setFilterValue(val === "all" ? undefined : val)}
+          >
+            <SelectTrigger className="w-[150px] border-primary/20 bg-card/50 text-xs h-8">
+              <SelectValue placeholder="All Modules" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Modules</SelectItem>
+              {modules.map((m) => (
+                <SelectItem key={m} value={m}>{m}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           <Select
             value={(table.getColumn("category")?.getFilterValue() as string) ?? "all"}
             onValueChange={(val) => table.getColumn("category")?.setFilterValue(val === "all" ? undefined : val)}
