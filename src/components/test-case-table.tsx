@@ -46,7 +46,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { MessageSquare, History, Plus, SlidersHorizontal } from "lucide-react";
+import { 
+  MessageSquare, 
+  History, 
+  Plus, 
+  SlidersHorizontal,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight 
+} from "lucide-react";
 import { addComment, updateTestCaseStatus } from "@/lib/actions";
 import { toast } from "sonner";
 
@@ -195,6 +204,10 @@ export function TestCasesTable({
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>(loadColumnSizing);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [pagination, setPagination] = React.useState({
+    pageIndex: 0,
+    pageSize: 100,
+  });
 
   React.useEffect(() => {
     saveColumnSizing(columnSizing);
@@ -227,7 +240,10 @@ export function TestCasesTable({
         cell: ({ row, table }) => {
           const pageIndex = table.getState().pagination.pageIndex;
           const pageSize = table.getState().pagination.pageSize;
-          return <span>{pageIndex * pageSize + row.index + 1}</span>;
+          // Use absolute index in the filtered row model for consistent numbering
+          const filteredRows = table.getFilteredRowModel().rows;
+          const indexInFiltered = filteredRows.findIndex(r => r.id === row.id);
+          return <span>{indexInFiltered + 1}</span>;
         },
       },
       {
@@ -328,10 +344,12 @@ export function TestCasesTable({
       columnVisibility,
       columnSizing,
       columnFilters,
+      pagination,
     },
     onColumnVisibilityChange: setColumnVisibility,
     onColumnSizingChange: setColumnSizing,
     onColumnFiltersChange: setColumnFilters,
+    onPaginationChange: setPagination,
     columnResizeMode: "onChange",
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -342,6 +360,12 @@ export function TestCasesTable({
     const uniqueModules = new Set(data.map((tc) => tc.module).filter(Boolean));
     return Array.from(uniqueModules).sort() as string[];
   }, [data]);
+
+  const filteredCount = table.getFilteredRowModel().rows.length;
+  const totalCount = tableData.length;
+  const { pageIndex, pageSize } = table.getState().pagination;
+  const startRow = pageIndex * pageSize + 1;
+  const endRow = Math.min((pageIndex + 1) * pageSize, filteredCount);
 
   return (
     <div className="flex flex-col gap-4">
@@ -434,21 +458,21 @@ export function TestCasesTable({
               <TableRow key={headerGroup.id} className="border-primary/20 hover:bg-primary/5">
                 {headerGroup.headers.map((header) => (
                   <TableHead
-                    key={header.id}
-                    className="text-primary font-bold text-xs uppercase tracking-wider relative select-none group"
-                  >
-                    {header.isPlaceholder
-                       ? null
-                       : flexRender(header.column.columnDef.header, header.getContext())}
-                    {header.column.getCanResize() && (
-                      <div
-                        onMouseDown={header.getResizeHandler()}
-                        onTouchStart={header.getResizeHandler()}
-                        className={`absolute right-0 top-0 h-full w-1.5 cursor-col-resize touch-none select-none transition-colors group-hover:bg-primary/30 ${
-                          header.column.getIsResizing() ? "bg-primary w-2" : ""
-                        }`}
-                      />
-                    )}
+                      key={header.id}
+                      className="text-primary font-bold text-xs uppercase tracking-wider relative select-none group"
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
+                      {header.column.getCanResize() && (
+                        <div
+                          onMouseDown={header.getResizeHandler()}
+                          onTouchStart={header.getResizeHandler()}
+                          className={`absolute right-0 top-0 h-full w-1.5 cursor-col-resize touch-none select-none transition-colors group-hover:bg-primary/30 ${
+                            header.column.getIsResizing() ? "bg-primary w-2" : ""
+                          }`}
+                        />
+                      )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -482,29 +506,87 @@ export function TestCasesTable({
         </Table>
       </div>
 
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          {tableData.length} test case{tableData.length !== 1 ? "s" : ""}
-        </p>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-            className="border-primary/20 hover:bg-primary/5"
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-            className="border-primary/20 hover:bg-primary/5"
-          >
-            Next
-          </Button>
+      <div className="flex items-center justify-between px-2 py-4">
+        <div className="flex-1 text-sm text-muted-foreground">
+          {filteredCount > 0 ? (
+            <>
+              Showing <span className="font-medium text-primary">{startRow}</span> to{" "}
+              <span className="font-medium text-primary">{endRow}</span> of{" "}
+              <span className="font-medium text-primary">{filteredCount}</span> entries
+              {filteredCount !== totalCount && (
+                <span className="ml-1">(filtered from {totalCount} total)</span>
+              )}
+            </>
+          ) : (
+            "No test cases found"
+          )}
+        </div>
+
+        <div className="flex items-center space-x-6 lg:space-x-8">
+          <div className="flex items-center space-x-2">
+            <p className="text-sm font-medium">Rows per page</p>
+            <Select
+              value={`${table.getState().pagination.pageSize}`}
+              onValueChange={(value) => {
+                table.setPageSize(Number(value));
+              }}
+            >
+              <SelectTrigger className="h-8 w-[70px] border-primary/20 bg-card/50">
+                <SelectValue placeholder={table.getState().pagination.pageSize} />
+              </SelectTrigger>
+              <SelectContent side="top">
+                {[10, 20, 50, 100, 200, 500].map((pageSize) => (
+                  <SelectItem key={pageSize} value={`${pageSize}`}>
+                    {pageSize}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+            Page {table.getState().pagination.pageIndex + 1} of{" "}
+            {table.getPageCount()}
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              className="hidden h-8 w-8 p-0 border-primary/20 lg:flex"
+              onClick={() => table.setPageIndex(0)}
+              disabled={!table.getCanPreviousPage()}
+            >
+              <span className="sr-only">Go to first page</span>
+              <ChevronsLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              className="h-8 w-8 p-0 border-primary/20"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+            >
+              <span className="sr-only">Go to previous page</span>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              className="h-8 w-8 p-0 border-primary/20"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+            >
+              <span className="sr-only">Go to next page</span>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              className="hidden h-8 w-8 p-0 border-primary/20 lg:flex"
+              onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+              disabled={!table.getCanNextPage()}
+            >
+              <span className="sr-only">Go to last page</span>
+              <ChevronsRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>
