@@ -159,6 +159,20 @@ export async function importTestCases(projectId: string, data: any[]) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
+  // Get existing test cases to check for duplicates
+  const existingTests = await prisma.testCase.findMany({
+    where: { projectId },
+    select: { action: true, conditions: true, steps: true }
+  });
+
+  const getSignature = (action: string, conditions: string, steps: string) => {
+    return `${action.trim().toLowerCase()}|${conditions.trim().toLowerCase()}|${steps.trim().toLowerCase()}`;
+  };
+
+  const existingSignatures = new Set(
+    existingTests.map(t => getSignature(t.action, t.conditions, t.steps))
+  );
+
   // Get or create categories first
   const categoryNames = [...new Set(data.map(item => item.Category || "General"))];
   const categories = await Promise.all(
@@ -179,43 +193,66 @@ export async function importTestCases(projectId: string, data: any[]) {
       return await prisma.statusConfig.upsert({
         where: { name_projectId: { name, projectId } },
         update: {},
-        create: { name, projectId, color: "#6b7280" }, // Default gray color
+        create: { name, projectId, color: "#6b7280" },
       });
     })
   );
 
   const categoryMap = new Map(categories.map(c => [c.name, c.id]));
 
-  const testCases = data.map((item) => {
-    return {
+  const testCasesToInsert: any[] = [];
+  const seenInBatch = new Set<string>();
+  let duplicateCount = 0;
+
+  for (const item of data) {
+    const action = item.Action || "";
+    const conditions = item["Cases/Conditions"] || "";
+    const steps = item["Steps/Description"] || "";
+    const signature = getSignature(action, conditions, steps);
+
+    if (existingSignatures.has(signature) || seenInBatch.has(signature)) {
+      duplicateCount++;
+      continue;
+    }
+
+    seenInBatch.add(signature);
+    testCasesToInsert.push({
       projectId,
       userId: (session.user as any).id,
       categoryId: categoryMap.get(item.Category || "General")!,
       testCaseId: item["Test Case Id"] || `TC-${Math.random().toString(36).substr(2, 9)}`,
       module: item.Module || null,
-      action: item.Action || "",
-      conditions: item["Cases/Conditions"] || "",
-      steps: item["Steps/Description"] || "",
+      action,
+      conditions,
+      steps,
       expectedOutput: item["Expected Output"] || "",
       actualOutput: item["Actual Output"] || "",
       status: item.Status?.toLowerCase() || "pending",
-    };
-  });
+    });
+  }
 
-  const result = await prisma.testCase.createMany({
-    data: testCases,
-    skipDuplicates: true,
-  });
+  let resultCount = 0;
+  if (testCasesToInsert.length > 0) {
+    const result = await prisma.testCase.createMany({
+      data: testCasesToInsert,
+      skipDuplicates: true,
+    });
+    resultCount = result.count;
+  }
 
   await logActivity(
     (session.user as any).id,
     "IMPORTED_TESTS",
-    `Imported ${testCases.length} test cases`,
+    `Imported ${resultCount} test cases (${duplicateCount} duplicates skipped)`,
     projectId
   );
 
   revalidatePath("/dashboard");
-  return result;
+  return {
+    count: resultCount,
+    duplicates: duplicateCount,
+    total: data.length
+  };
 }
 
 export async function addComment(testCaseId: string, content: string) {

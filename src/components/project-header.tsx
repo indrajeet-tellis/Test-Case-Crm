@@ -94,7 +94,7 @@ export function ProjectHeader({
             complete: async (results) => {
               try {
                 const result = await importTestCases(selectedProjectId, results.data);
-                toast.success(`Imported ${result.count} test cases successfully`);
+                toast.success(`Import complete: ${result.count} new, ${result.duplicates} duplicates skipped`);
               } catch (error: any) {
                 toast.error(error.message || "Failed to import CSV");
               } finally {
@@ -113,7 +113,7 @@ export function ProjectHeader({
           const ws = wb.Sheets[wsname];
           const data = XLSX.utils.sheet_to_json(ws);
           const result = await importTestCases(selectedProjectId, data);
-          toast.success(`Imported ${result.count} test cases successfully`);
+          toast.success(`Import complete: ${result.count} new, ${result.duplicates} duplicates skipped`);
           setIsImporting(false);
           if (fileInputRef.current) fileInputRef.current.value = "";
         }
