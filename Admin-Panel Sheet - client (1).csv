@@ -1,0 +1,58 @@
+Module,Category,Test Case Id,Action,Cases/Conditions,Steps/Description,Expected Output,Actual Output,Status
+Client,Client List,1a,View all clients list,When opening the client module for the selected location.,"1. Select a location.
+ 2. Navigate to the Clients page.",Must display a list of all clients associated with the selected location.,Works correctly. Displays all clients for the location.,Works Correctly
+Client,Client List,1b,Search for a client by name,When using the search bar to find a specific client.,1. Type a partial or full client name in the search bar.,The list should dynamically filter to show only clients matching the name.,Works correctly. List filters by name properly.,Works Correctly
+Client,Client List,1c,Search for a client by phone/name/email,When searching using contact information instead of name.,1. Type a client's email or phone number in the search bar.,The list should dynamically filter to show the client matching the contact info.,Works correctly. List filters by name/phone/email properly.,Works Correctly
+Client,Client List,1d,Empty search state,When searching for a client that does not exist.,1. Type a random string in the search bar that has no matches.,"Must show a clear ""No clients found"" or empty state message.",Works correctly. Shows the appropriate empty state.,Works Correctly
+Client,Client List,1e,Grouping and sorting,When viewing the default client list without active search filters.,"1. Open the Clients page.
+ 2. Observe the list structure.",The list should be properly grouped by the first letter of the client's name (alphabetical order).,Works correctly. List is grouped alphabetically.,Works Correctly
+Client,Client List,1f,Selection sync,When switching between clients in the list.,1. Click on a client in the left-hand navigator list.,The right-hand panel must immediately update to show the specific details of the clicked client.,Works correctly. Right panel updates instantly.,Works Correctly
+Client,Client List,1g,Search result sorting,When searching for a specific client keyword.,"1. Type a keyword in the search bar.
+ 2. Observe the order of the filtered results.","The search results should be sorted with the most relevant/exact match at the top, not strictly alphabetically.",BUG: The results remain grouped alphabetically instead of prioritizing the search keyword matches at the top.,Issue
+Client,Client List,1h,Filtered Count Badge,Using the search bar to filter client and checking the total count badge.,"1. Observe the client count badge (e.g., '34').
+ 2. Type a search term that matches only 2-3 client members.","The badge number should update to reflect the number of filtered results (e.g., change from '34' to '3').","BUG: Not working. The count badge always shows the total number of client, even when filtered.",Issue
+Client,Client List,1i,Alphabetical Headings,Filtering the client list and checking the alphabetical group headers.,"1. Filter the client list.
+ 2. Check if the 'A', 'B', 'C' headings are still visible for the matching results.","The list should correctly display the first-letter heading (e.g., 'C') above the client members.",Works correctly. Alphabetical headers are shown even when filtered.,Works Correctly
+Client,Add Client (Form Validation),2a,Open creation form,When clicking the button to add a new client.,"1. Click the floating action button (FAB) or ""Add new client"".",The system must  open the form overlay to create a client.,Works correctly. The form overlay opens.,Works Correctly
+Client,Add Client (Form Validation),2b,Form Validation (Required Fields),When trying to save a client without filling out mandatory details.,"1. Leave important fields like name or contact empty.
+ 2. Attempt to save.",The system must show clear user-readable error messages for missing fields.,Works correctly. Error messages are clearly shown.,Works Correctly
+Client,Add Client (Form Validation),2c,Form Validation (Formatting),When entering incorrectly formatted data.,"1. Enter an invalid email or a phone number longer than permitted.
+ 2. Attempt to save.",The system must validate the input and reject invalid formats with a warning.,Works correctly. Validation rejects invalid formats.,Works Correctly
+Client,Add Client (Form Validation),2d,Profile image upload,When assigning a image to a new client.,1. Upload an image file in the profile section.,The system should show an instant preview of the uploaded image.,Works correctly. Image preview displays instantly.,Works Correctly
+Client,Add Client (Form Validation),2e,Discard changes (Empty form),When opening the form and closing it immediately without typing.,"1. Open the Add Client form.
+ 2. Do not enter any data.
+ 3. Close the sheet.",The form should close immediately without showing a discard warning modal.,Works correctly. No discard modal is shown.,Works Correctly
+Client,Add Client (Form Validation),2f,Discard changes (Populated form),When canceling the form after some data has been entered.,"1. Open the Add Client form.
+ 2. Fill in some data (e.g., name).
+ 3. Close the sheet.",The system must show a discard modal prompting the user to confirm discarding changes.,Works correctly. Discard modal is successfully shown.,Works Correctly
+Client,Add Client (Form Validation),2g,Name Auto-Casing,"Entering client names in inconsistent cases (e.g., 'MiCheaL-PROD').","1. Type 'MiCheaL-PROD' in the Name field.
+ 2. Save the client.","The system should automatically format the name to Camel Case (e.g., 'Micheal-Prod') in the list and database.",Works correctly. Names are automatically normalized to Camel Case.,Works Correctly
+Client,Add Client (Form Validation),2h,Phone Number Length,Entering a phone number shorter than 10 or longer than 15 digits.,1. Try to save a client with a 5-digit phone number.,The system should validate and restrict the length to between 10-15 digits.,Works correctly. Validation restricts the length to 10-15 digits.,Works Correctly
+Client,Add Client (Form Validation),2i,Save Button State,Opening the edit form but making no changes.,"1. Click 'Edit' on a client member.
+ 2. Observe the 'Save' button without typing anything.",The 'Save' button should be disabled if no changes have been made to the data.,Works correctly. Save button remains disabled until a field is modified.,Works Correctly
+Client,Profile Management,3a,Edit client profile,When initiating an edit on a client's profile.,"1. Open a client profile.
+ 2. Click the edit icon.",The system must open the edit form overlay with the client's current details pre-filled.,Works correctly. Edit form overlay opens with pre-filled details.,Works Correctly
+Client,Profile Management,3b,Avatar fallback,When viewing a client profile that has no uploaded profile picture.,1. Open or create a client without an image.,"The system must display a fallback avatar showing the client's initials (e.g., ""JD"" for John Doe).",Works correctly. Initials are properly displayed as a fallback avatar.,Works Correctly
+Client,Profile Management,3c,Open View details and insights,"When clicking the ""view details and insight"" button on a client's profile.","1. Open a client profile.
+ 2. Click on ""view details and insight"".",A comprehensive detailed view or modal should open containing extended client information.,Works correctly. Detailed insights view opens successfully.,Works Correctly
+Client,Profile Management,3d,Edit profile from insights,"When clicking the ""Edit profile"" button inside the details and insights view.","1. Open the ""view details and insight"" view.
+ 2. Click on ""Edit profile"".",The system must open the edit form overlay with the client's current details pre-filled.,Works correctly. Edit overlay opens with pre-filled details.,Works Correctly
+Client,Profile Management,3e,Book now from insights,"When clicking the ""Book now"" button inside the details and insights view.","1. Open the ""view details and insight"" view.
+ 2. Click on ""Book now"".",The system must navigate to the Calendar module and open the new appointment form with the client already pre-selected.,Works correctly. Navigates to calendar with client pre-selected.,Works Correctly
+Client,Profile Management,3f,Client Appointments in insights,When viewing the appointments section within details and insights.,"1. Inside ""details and insights"", navigate to the Appointments tab.","Must display a complete history of all the client's past, upcoming, and cancelled appointments.",Works correctly. All client appointments are visible.,Works Correctly
+Client,Profile Management,3g,Client Notes in insights,When viewing or managing notes in the details and insights section.,"1. Inside ""details and insights"", navigate to the Notes tab.
+ 2. Attempt to add or update a note.",Must securely display all past internal notes and allow authorized admins to add/update new notes.,Works correctly. Notes can be added and updated successfully.,Works Correctly
+Client,Profile Management,3h,Payments History tab,When viewing the client's payment history in details and insights.,"1. Inside ""details and insights"", navigate to the Payments tab.","Must display a history of all transactions and payments. If no data exists, it should show a ""No payment history"" message.","Works correctly. Payment history is visible, and the empty state message shows when no payments exist.",Works Correctly
+Client,Profile Management,3i,Membership Cards in insights,When viewing membership details in the insights section.,"1. Inside ""details and insights"", navigate to the Memberships tab.",Should display all active and past membership cards associated with the client.,Works correctly. Memberships are visible.,Works Correctly
+Client,Profile Management,3j,Packages in insights,When viewing purchased packages in the insights section.,"1. Inside ""details and insights"", navigate to the Packages tab.",Must correctly display all packages the client has purchased and their remaining balance/sessions.,Works correctly. Packages are displayed properly.,Works Correctly
+Client,Profile Management,3k,Gift Cards in insights,When viewing purchased gift cards in the insights section.,"1. Inside ""details and insights"", navigate to the Gift Cards tab.","Must correctly display all gift cards purchased by or for the client, including their current balance and status.",Works correctly. Gift cards are visible in the dedicated tab.,Works Correctly
+Client,Profile Management,3l,Redundant Unique Field Validation,When updating a client profile and saving without changing phone/email.,"1. Open the edit form for a client.
+ 2. Make changes to other fields (e.g., Name).
+ 3. Keep the original Phone and Email.
+ 4. Attempt to save.",The system should allow saving if the phone/email belongs to the client being edited.,"BUG: The system incorrectly throws ""Phone/Email already exists"" errors against the client's own current data during an update.",Issue
+Client,Client Contact Actions,4a,clicking phone icon,When attempting to call a client from their profile.,"1. Open a client profile.
+ 2. Click on the phone icon.",must trigger the device's default phone/call application,Pending testing,Works Correctly
+Client,Client Contact Actions,4b,clicking mail icon,When attempting to email a client from their profile.,"1. Open a client profile.
+ 2. Click on the mail icon.",must trigger the device's default email client with the client's email prefilled,Pending testing,Works Correctly
+Client,Client Contact Actions,4c,clicking message/SMS icon,When attempting to text a client from their profile.,"1. Open a client profile.
+ 2. Click on the message/SMS icon.",must trigger the device's default messaging application with the client's number prefilled,Pending testing,Works Correctly
