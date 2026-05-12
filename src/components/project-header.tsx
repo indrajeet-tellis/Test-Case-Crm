@@ -75,29 +75,51 @@ export function ProjectHeader({
     XLSX.writeFile(wb, "test_case_sample.xlsx");
   };
 
+  const [isImporting, setIsImporting] = React.useState(false);
+  const [isCreatingTestCase, setIsCreatingTestCase] = React.useState(false);
+
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !selectedProjectId) return;
 
+    setIsImporting(true);
     const reader = new FileReader();
     reader.onload = async (evt) => {
-      const bstr = evt.target?.result;
-      if (file.name.endsWith(".csv")) {
-        Papa.parse(file, {
-          header: true,
-          skipEmptyLines: true,
-          complete: async (results) => {
-            await importTestCases(selectedProjectId, results.data);
-            toast.success("Imported CSV successfully");
-          },
-        });
-      } else {
-        const wb = XLSX.read(bstr, { type: "binary" });
-        const wsname = wb.SheetNames[0];
-        const ws = wb.Sheets[wsname];
-        const data = XLSX.utils.sheet_to_json(ws);
-        await importTestCases(selectedProjectId, data);
-        toast.success("Imported Excel successfully");
+      try {
+        const bstr = evt.target?.result;
+        if (file.name.endsWith(".csv")) {
+          Papa.parse(file, {
+            header: true,
+            skipEmptyLines: true,
+            complete: async (results) => {
+              try {
+                const result = await importTestCases(selectedProjectId, results.data);
+                toast.success(`Imported ${result.count} test cases successfully`);
+              } catch (error: any) {
+                toast.error(error.message || "Failed to import CSV");
+              } finally {
+                setIsImporting(false);
+                if (fileInputRef.current) fileInputRef.current.value = "";
+              }
+            },
+            error: (error) => {
+              toast.error(error.message || "Failed to parse CSV");
+              setIsImporting(false);
+            }
+          });
+        } else {
+          const wb = XLSX.read(bstr, { type: "binary" });
+          const wsname = wb.SheetNames[0];
+          const ws = wb.Sheets[wsname];
+          const data = XLSX.utils.sheet_to_json(ws);
+          const result = await importTestCases(selectedProjectId, data);
+          toast.success(`Imported ${result.count} test cases successfully`);
+          setIsImporting(false);
+          if (fileInputRef.current) fileInputRef.current.value = "";
+        }
+      } catch (error: any) {
+        toast.error(error.message || "Failed to import file");
+        setIsImporting(true);
       }
     };
 
@@ -107,8 +129,6 @@ export function ProjectHeader({
       reader.readAsBinaryString(file);
     }
   };
-
-  const [isCreatingTestCase, setIsCreatingTestCase] = React.useState(false);
   const [newTestCase, setNewTestCase] = React.useState({
     category: "",
     module: "",
@@ -196,10 +216,19 @@ export function ProjectHeader({
           variant="outline"
           size="sm"
           onClick={() => fileInputRef.current?.click()}
-          disabled={!selectedProjectId}
-          className="border-primary/20 hover:bg-primary/10"
+          disabled={!selectedProjectId || isImporting}
+          className="border-primary/20 hover:bg-primary/10 min-w-[100px]"
         >
-          <Upload className="mr-2 size-4" /> Import
+          {isImporting ? (
+            <>
+              <div className="mr-2 h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              Importing...
+            </>
+          ) : (
+            <>
+              <Upload className="mr-2 size-4" /> Import
+            </>
+          )}
         </Button>
 
         <Dialog open={isCreatingTestCase} onOpenChange={setIsCreatingTestCase}>
