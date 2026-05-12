@@ -205,9 +205,13 @@ export async function importTestCases(projectId: string, data: any[]) {
   let duplicateCount = 0;
 
   for (const item of data) {
-    const action = item.Action || "";
-    const conditions = item["Cases/Conditions"] || "";
-    const steps = item["Steps/Description"] || "";
+    const action = (item.Action || "").toString();
+    const conditions = (item["Cases/Conditions"] || "").toString();
+    const steps = (item["Steps/Description"] || "").toString();
+    
+    // Skip if all three are empty
+    if (!action && !conditions && !steps) continue;
+
     const signature = getSignature(action, conditions, steps);
 
     if (existingSignatures.has(signature) || seenInBatch.has(signature)) {
@@ -220,14 +224,14 @@ export async function importTestCases(projectId: string, data: any[]) {
       projectId,
       userId: (session.user as any).id,
       categoryId: categoryMap.get(item.Category || "General")!,
-      testCaseId: item["Test Case Id"] || `TC-${Math.random().toString(36).substr(2, 9)}`,
-      module: item.Module || null,
+      testCaseId: (item["Test Case Id"] || `TC-${Math.random().toString(36).substr(2, 9)}`).toString(),
+      module: (item.Module || null)?.toString(),
       action,
       conditions,
       steps,
-      expectedOutput: item["Expected Output"] || "",
-      actualOutput: item["Actual Output"] || "",
-      status: item.Status?.toLowerCase() || "pending",
+      expectedOutput: (item["Expected Output"] || "").toString(),
+      actualOutput: (item["Actual Output"] || "").toString(),
+      status: (item.Status?.toLowerCase() || "pending").toString(),
     });
   }
 

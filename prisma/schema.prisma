@@ -47,7 +47,7 @@ model TestCase {
   projectId      String
   userId         String
   categoryId     String
-  testCaseId     String    @unique
+  testCaseId     String
   module         String?
   action         String
   conditions     String
