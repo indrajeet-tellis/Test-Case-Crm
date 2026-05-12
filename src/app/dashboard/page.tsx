@@ -4,7 +4,12 @@ import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { getProjects } from "@/lib/actions"
 
-export default async function Page() {
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ projectId?: string }>;
+}) {
+  const { projectId } = await searchParams;
   const projects = await getProjects()
 
   return (
@@ -21,6 +26,7 @@ export default async function Page() {
         <SiteHeader />
         <DashboardView 
           initialProjects={projects} 
+          initialProjectId={projectId}
         />
       </SidebarInset>
     </SidebarProvider>

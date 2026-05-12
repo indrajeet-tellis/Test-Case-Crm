@@ -8,12 +8,20 @@ import { getTestCases, getProjectConfigs } from "@/lib/actions";
 
 export function DashboardView({
   initialProjects,
+  initialProjectId,
 }: {
   initialProjects: any[];
+  initialProjectId?: string;
 }) {
   const [selectedProjectId, setSelectedProjectId] = React.useState<string | undefined>(
-    initialProjects[0]?.id
+    initialProjectId || initialProjects[0]?.id
   );
+
+  React.useEffect(() => {
+    if (initialProjectId) {
+      setSelectedProjectId(initialProjectId);
+    }
+  }, [initialProjectId]);
   const [testCases, setTestCases] = React.useState<any[]>([]);
   const [statusConfigs, setStatusConfigs] = React.useState<any[]>([]);
   const [categories, setCategories] = React.useState<any[]>([]);

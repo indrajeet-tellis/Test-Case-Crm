@@ -25,6 +25,52 @@ export async function getProjectsWithCounts() {
   });
 }
 
+export async function getProjectSummaryStats() {
+  const session = await auth();
+  if (!session) return [];
+  
+  const projects = await prisma.project.findMany({
+    include: {
+      testCases: {
+        select: {
+          module: true,
+          categoryId: true,
+        }
+      }
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return projects.map(project => {
+    const moduleMap = new Map<string, { categories: Set<string>, testCount: number }>();
+    
+    project.testCases.forEach(tc => {
+      const moduleName = tc.module || "Unassigned";
+      if (!moduleMap.has(moduleName)) {
+        moduleMap.set(moduleName, { categories: new Set(), testCount: 0 });
+      }
+      const stats = moduleMap.get(moduleName)!;
+      stats.testCount++;
+      if (tc.categoryId) {
+        stats.categories.add(tc.categoryId);
+      }
+    });
+
+    const modules = Array.from(moduleMap.entries()).map(([name, stats]) => ({
+      name,
+      categoryCount: stats.categories.size,
+      testCount: stats.testCount,
+    })).sort((a, b) => a.name.localeCompare(b.name));
+
+    return {
+      id: project.id,
+      name: project.name,
+      modules,
+      totalTests: project.testCases.length,
+    };
+  });
+}
+
 export async function getUsers() {
   const session = await auth();
   if (!session || (session.user as any).role !== "ADMIN") return [];
