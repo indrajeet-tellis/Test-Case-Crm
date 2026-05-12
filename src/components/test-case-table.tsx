@@ -361,6 +361,8 @@ export function TestCasesTable({
     return Array.from(uniqueModules).sort() as string[];
   }, [data]);
 
+  const selectedModule = table.getColumn("module")?.getFilterValue() as string | undefined;
+
   const filteredCount = table.getFilteredRowModel().rows.length;
   const totalCount = tableData.length;
   const { pageIndex, pageSize } = table.getState().pagination;
@@ -373,7 +375,11 @@ export function TestCasesTable({
         <div className="flex items-center gap-2">
           <Select
             value={(table.getColumn("module")?.getFilterValue() as string) ?? "all"}
-            onValueChange={(val) => table.getColumn("module")?.setFilterValue(val === "all" ? undefined : val)}
+            onValueChange={(val) => {
+              table.getColumn("module")?.setFilterValue(val === "all" ? undefined : val);
+              // Reset category filter when module changes to ensure consistency
+              table.getColumn("category")?.setFilterValue(undefined);
+            }}
           >
             <SelectTrigger className="w-[150px] border-primary/20 bg-card/50 text-xs h-8">
               <SelectValue placeholder="All Modules" />
@@ -395,11 +401,17 @@ export function TestCasesTable({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Categories</SelectItem>
-              {categories?.map((c) => (
+              {(selectedModule && selectedModule !== "all"
+                ? (categories || []).filter(c => 
+                    data.some(tc => tc.module === selectedModule && tc.category?.name === c.name)
+                  )
+                : (categories || [])
+              ).map((c) => (
                 <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
+
 
           <Select
             value={(table.getColumn("status")?.getFilterValue() as string) ?? "all"}
