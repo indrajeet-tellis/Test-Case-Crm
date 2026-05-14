@@ -417,7 +417,7 @@ export function TestCasesTable({
             value={(table.getColumn("status")?.getFilterValue() as string) ?? "all"}
             onValueChange={(val) => table.getColumn("status")?.setFilterValue(val === "all" ? undefined : val)}
           >
-            <SelectTrigger className="w-[150px] border-primary/20 bg-card/50 text-xs h-8">
+            <SelectTrigger className="w-[150px] border-primary/20 bg-card/50 text-xs h-8 capitalize">
               <SelectValue placeholder="All Statuses" />
             </SelectTrigger>
             <SelectContent>
