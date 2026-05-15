@@ -383,7 +383,10 @@ export function TestCasesTable({
           >
             <SelectTrigger className="w-[150px] border-primary/20 bg-card/50 text-xs h-8">
               <SelectValue placeholder="All Modules">
-                {(table.getColumn("module")?.getFilterValue() as string) ?? "All Modules"}
+                {(() => {
+                  const val = table.getColumn("module")?.getFilterValue() as string;
+                  return !val || val === "all" ? "All Modules" : val;
+                })()}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
@@ -400,7 +403,10 @@ export function TestCasesTable({
           >
             <SelectTrigger className="w-[150px] border-primary/20 bg-card/50 text-xs h-8">
               <SelectValue placeholder="All Categories">
-                {(table.getColumn("category")?.getFilterValue() as string) ?? "All Categories"}
+                {(() => {
+                  const val = table.getColumn("category")?.getFilterValue() as string;
+                  return !val || val === "all" ? "All Categories" : val;
+                })()}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
@@ -423,7 +429,10 @@ export function TestCasesTable({
           >
             <SelectTrigger className="w-[150px] border-primary/20 bg-card/50 text-xs h-8 capitalize">
               <SelectValue placeholder="All Statuses">
-                {(table.getColumn("status")?.getFilterValue() as string) ?? "All Statuses"}
+                {(() => {
+                  const val = table.getColumn("status")?.getFilterValue() as string;
+                  return !val || val === "all" ? "All Statuses" : val;
+                })()}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>

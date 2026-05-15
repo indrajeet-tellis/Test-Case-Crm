@@ -179,9 +179,9 @@ export function ProjectHeader({
           </Label>
           <Select value={selectedProjectId} onValueChange={onProjectChange}>
             <SelectTrigger className="border-primary/20 bg-card/50">
-              <SelectValue placeholder="Select a project">
-                {projects.find((p) => p.id === selectedProjectId)?.name ?? "Select a project"}
-              </SelectValue>
+              <span className="truncate">
+                {projects.find((p) => p.id === selectedProjectId)?.name || selectedProjectId || "Select a project"}
+              </span>
             </SelectTrigger>
             <SelectContent>
               {projects.map((p) => (
